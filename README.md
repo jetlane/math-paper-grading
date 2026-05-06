@@ -206,8 +206,8 @@ pip install paddlepaddle-gpu
 ## 📞 联系方式
 
 如有问题或建议，请通过以下方式联系我们：
-- 邮箱：your-email@example.com
-- GitHub：https://github.com/your-username/math-paper-grading
+- 邮箱：80921970@qq.com
+- GitHub：https://github.com/jetlane/math-paper-grading
 
 ---
 
