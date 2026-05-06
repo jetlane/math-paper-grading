@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批改结果 - 数学试卷批改系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .image-section {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .image-container {
+            padding: 20px;
+            text-align: center;
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .details-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .details-header {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .question-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .question-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s ease;
+        }
+
+        .question-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .question-number {
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .question-content {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .answer-content {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            padding-left: 10px;
+            border-left: 3px solid #ddd;
+        }
+
+        .result-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-correct {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-incorrect {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .error-reason {
+            color: #dc3545;
+            font-size: 0.85em;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 批改结果</h1>
+            <p>试卷已处理完成，以下是详细的批改结果</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div style="font-size: 2em; margin-bottom: 10px;">⏳</div>
+            <p>正在加载批改结果...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <p>加载失败，请重新上传试卷</p>
+        </div>
+
+        <div id="resultContent" style="display: none;">
+            <!-- 统计概览 -->
+            <div class="stats-overview" id="statsOverview">
+                <!-- 统计卡片将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 内容网格 -->
+            <div class="content-grid">
+                <!-- 原始图像 -->
+                <div class="image-section">
+                    <div class="image-header">📋 原始试卷</div>
+                    <div class="image-container">
+                        <img id="originalImage" alt="原始试卷">
+                    </div>
+                </div>
+
+                <!-- 标记后图像 -->
+                <div class="image-section">
+                    <div class="image-header">❌ 错误标记</div>
+                    <div class="image-container">
+                        <img id="markedImage" alt="标记后试卷">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细结果 -->
+            <div class="details-section">
+                <div class="details-header">📝 详细批改结果</div>
+                <div class="question-list" id="questionList">
+                    <!-- 题目列表将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">🔄 重新上传</a>
+                <button class="btn btn-secondary" onclick="downloadResult()">💾 下载结果</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据 - 在实际应用中，这里应该从服务器获取真实数据
+        const mockResultData = {
+            success: true,
+            filename: 'test_paper.jpg',
+            original_image: '/static/uploads/sample.jpg',
+            marked_image: '/static/results/sample_marked.jpg',
+            summary_image: '/static/results/sample_summary.jpg',
+            statistics: {
+                total_questions: 5,
+                correct_count: 3,
+                total_score: 75,
+                average_score: 75.0,
+                accuracy: 60.0
+            },
+            grading_results: [
+                {
+                    question_number: 1,
+                    question_content: '计算：2 + 3 × 4 = ?',
+                    student_answer: '14',
+                    is_correct: true,
+                    score: 100,
+                    error_reason: '',
+                    detailed_analysis: '计算正确，遵循了先乘除后加减的运算法则'
+                },
+                {
+                    question_number: 2,
+                    question_content: '解方程：x + 5 = 12',
+                    student_answer: 'x = 8',
+                    is_correct: false,
+                    score: 0,
+                    error_reason: '计算错误，正确答案应该是 x = 7',
+                    detailed_analysis: '学生将 12 - 5 计算为 8，正确答案应为 7'
+                },
+                {
+                    question_number: 3,
+                    question_content: '求面积：长方形长6cm，宽4cm',
+                    student_answer: '24平方厘米',
+                    is_correct: true,
+                    score: 100,
+                    error_reason: '',
+                    detailed_analysis: '面积计算正确：6 × 4 = 24 平方厘米'
+                },
+                {
+                    question_number: 4,
+                    question_content: '选择题：2的平方等于？\nA. 2  B. 4  C. 6  D. 8',
+                    student_answer: 'B',
+                    is_correct: true,
+                    score: 100,
+                    error_reason: '',
+                    detailed_analysis: '选择正确，2² = 4'
+                },
+                {
+                    question_number: 5,
+                    question_content: '计算：15 ÷ 3 + 2 = ?',
+                    student_answer: '6',
+                    is_correct: false,
+                    score: 0,
+                    error_reason: '运算顺序错误，应该先算除法再加法',
+                    detailed_analysis: '学生可能按从左到右的顺序计算，正确答案应为 15 ÷ 3 + 2 = 5 + 2 = 7'
+                }
+            ],
+            marked_count: 2
+        };
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadResultData();
+        });
+
+        function loadResultData() {
+            // 模拟API调用延迟
+            setTimeout(() => {
+                displayResult(mockResultData);
+            }, 1500);
+        }
+
+        function displayResult(data) {
+            if (!data.success) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+
+            // 隐藏加载状态，显示结果
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('resultContent').style.display = 'block';
+
+            // 显示统计概览
+            displayStatistics(data.statistics);
+
+            // 显示图像
+            document.getElementById('originalImage').src = data.original_image;
+            document.getElementById('markedImage').src = data.marked_image;
+
+            // 显示详细结果
+            displayQuestions(data.grading_results);
+        }
+
+        function displayStatistics(stats) {
+            const statsOverview = document.getElementById('statsOverview');
+            statsOverview.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total_questions}</div>
+                    <div class="stat-label">总题数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #28a745;">${stats.correct_count}</div>
+                    <div class="stat-label">正确题数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #dc3545;">${stats.total_questions - stats.correct_count}</div>
+                    <div class="stat-label">错误题数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.accuracy}%</div>
+                    <div class="stat-label">正确率</div>
+                </div>
+            `;
+        }
+
+        function displayQuestions(questions) {
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = questions.map(q => `
+                <div class="question-item">
+                    <div class="question-number">第 ${q.question_number} 题</div>
+                    <div class="question-content">${q.question_content}</div>
+                    <div class="answer-content">学生答案：${q.student_answer || '未作答'}</div>
+                    <div class="result-status ${q.is_correct ? 'status-correct' : 'status-incorrect'}">
+                        ${q.is_correct ? '✓ 正确' : '✗ 错误'}
+                    </div>
+                    ${q.error_reason ? `<div class="error-reason">错误原因：${q.error_reason}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function downloadResult() {
+            // 这里可以实现下载功能
+            alert('下载功能开发中...');
+        }
+    </script>
+</body>
+</html>
